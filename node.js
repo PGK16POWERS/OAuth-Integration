@@ -8,11 +8,12 @@ const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth").OAuth2Strategy;
 require("dotenv").config();
 
+// USE AND SET
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static("views"));
-app.use(cookieParser());
+app.use(cookieParser()); // USE COOKIE PARSER
 
 // Configure express-session
 app.use(
@@ -23,9 +24,11 @@ app.use(
   })
 );
 
+// INITIALIZE PASSPORT
 app.use(passport.initialize());
 app.use(passport.session());
 
+// USE NEW INSTANCE OF GOOGLE STRATEGY
 passport.use(new GoogleStrategy({
     clientID: process.env.OAUTH_CLIENT_ID,
     clientSecret: process.env.OAUTH_CLIENT_SECRET,
@@ -48,7 +51,7 @@ app.get("/auth/google", passport.authenticate('google', { scope: ['profile', 'em
 app.get('/auth/google/callback',
     passport.authenticate('google', {failureRedirect: '/'}),
     (req,res) => {
-        res.render(path.join(__dirname, "views", "ejsfolder", "dashboard.ejs"));
+        res.render("dashboard.ejs");
     }
 )
 
