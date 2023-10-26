@@ -34,26 +34,31 @@ passport.use(new GoogleStrategy({
     clientSecret: process.env.OAUTH_CLIENT_SECRET,
     callbackURL: 'http://localhost:6010/auth/google/callback',
 }, (accessToken, refreshToken, profile, next) => {
-
     next()
-}))
+}));
+
 
 app.get("/", (req,res) => {
-    res.render(path.join(__dirname, "views", "ejsfolder", "sign-up.ejs"));
+    res.render(path.join(__dirname, "views", "ejsfolder", "index.ejs"));
 });
+
 
 app.get("/login", (req,res) => {
-    res.render(path.join(__dirname, "views", "ejsfolder","login.ejs"));
+    res.render(path.join(__dirname, "views", "ejsfolder", "login.ejs"));
 });
 
-app.get("/auth/google", passport.authenticate('google', { scope: ['profile', 'email'] }));
 
+// DEFINE ROUTE TO GOOGLE SIGN-IN
+app.get("/try", passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+
+// DEFINE ROUTE FOR HOW TO HANDLE SUCCESSFUL SIGN-UP
 app.get('/auth/google/callback',
-    passport.authenticate('google', {failureRedirect: '/'}),
+    passport.authenticate('google', {failureRedirect: '/login'}),
     (req,res) => {
         res.render("dashboard.ejs");
     }
-)
+);
 
 
 app.listen(6010, () => {
