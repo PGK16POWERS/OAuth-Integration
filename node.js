@@ -1,66 +1,72 @@
 const express = require("express");
 const app = express();
-const ejs = require("ejs");
 const path = require("path");
-const cookieParser = require("cookie-parser");
-const session = require("express-session"); // Add this line
-const passport = require("passport");
-const GoogleStrategy = require("passport-google-oauth").OAuth2Strategy;
+const passport = require("passport")
+const session = require("express-session");
+const GoogleStrategy = require('passport-google-oauth2').Strategy;
 require("dotenv").config();
 
-// USE AND SET
-app.set("view engine", "ejs");
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(express.static("views"));
-app.use(cookieParser()); // USE COOKIE PARSER
+function isLoggedIn(req,res,next) {
+    req.user ? next() : res.sendStatus(401)
+}
 
-// Configure express-session
-app.use(
-  session({
-    secret: 'Kartier',
+app.use(express.static("views"))
+app.use(session({
+    secret:"BaggerMan",
     resave: true,
-    saveUninitialized: true,
-  })
-);
+    saveUninitialized:true,
+}));
 
-// INITIALIZE PASSPORT
 app.use(passport.initialize());
-app.use(passport.session());
+app.use(passport.session())
 
-// USE NEW INSTANCE OF GOOGLE STRATEGY
-passport.use(new GoogleStrategy({
+
+passport.use( new GoogleStrategy({
     clientID: process.env.OAUTH_CLIENT_ID,
     clientSecret: process.env.OAUTH_CLIENT_SECRET,
-    callbackURL: 'http://localhost:6010/auth/google/callback',
-}, (accessToken, refreshToken, profile, next) => {
-    next()
+    callbackURL: "http://localhost:7050/auth/google/callback",
+    passReqToCallback: true
+}, function (request, accessToken, refreshToken, profile, done) {
+    return done (null, profile);
 }));
+
+passport.serializeUser((user,done)=> {
+    done (null, user);
+});
+
+passport.deserializeUser((user,done)=> {
+    done (null, user);
+});
+
+app.get("/auth/google", passport.authenticate('google', { scope : [ 'email', 'profile']}))
+
+app.get("/auth/google/callback", passport.authenticate('google', {
+    successRedirect: "/dashboard",
+    failureRedirect: "/auth/google/failure"
+}));
+
 
 
 app.get("/", (req,res) => {
     res.render(path.join(__dirname, "views", "ejsfolder", "index.ejs"));
 });
 
-
-app.get("/login", (req,res) => {
-    res.render(path.join(__dirname, "views", "ejsfolder", "login.ejs"));
+app.get("/dashboard", isLoggedIn, (req,res) => {
+    res.render(path.join(__dirname, "views", "ejsfolder", "dashboard.ejs"));
 });
 
+app.get("/logout", (req,res) => {
+    req.logout(function () {
+        req.session.destroy(function (err) {
+            if (err) {
+                console.error(err);
+            }
 
-// DEFINE ROUTE TO GOOGLE SIGN-IN
-app.get("/try", passport.authenticate('google', { scope: ['profile', 'email'] }));
+            res.render(path.join(__dirname, "views", "ejsfolder", "index.ejs"));
+        });
+    });
+});
 
-
-// DEFINE ROUTE FOR HOW TO HANDLE SUCCESSFUL SIGN-UP
-app.get('/auth/google/callback',
-    passport.authenticate('google', {failureRedirect: '/login'}),
-    (req,res) => {
-        res.render("dashboard.ejs");
-    }
-);
-
-
-app.listen(6010, () => {
-    console.log("Danko Supreme");
+app.listen(7050, () => {
+    console.log("big Dripper, Magnum Zipper")
 });
