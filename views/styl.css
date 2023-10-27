@@ -84,3 +84,16 @@ h1 {
     border-radius: 5px;
 }
 /**** FORM SECTION ****/
+/**** HOME PAGE ****/
+#index-section {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+}
+
+
+/**** HOME PAGE ****/
